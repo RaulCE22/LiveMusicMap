@@ -1,6 +1,7 @@
 <template>
   <div>
-    <l-map ref="map" :zoom="18" :center="center" style="height: 100vh; z-index: 0">
+    <l-map ref="map" :zoom="18" :min-zoom="3" :center="center" style="height: 100vh; z-index: 0">
+      <v-geosearch :options="geosearchOptions"></v-geosearch>
       <l-tile-layer :url="url" :attribution="attribution"/>
       <l-marker
         :key="1"
@@ -15,7 +16,10 @@
 
 <script lang="ts">
 import Vue from "vue";
+import L from "leaflet";
 import { Icon } from "leaflet";
+import { OpenStreetMapProvider } from "leaflet-geosearch";
+import VGeosearch from "vue2-leaflet-geosearch/Vue2LeafletGeosearch.vue";
 
 import { LMap, LTileLayer, LMarker } from "vue2-leaflet";
 
@@ -28,11 +32,35 @@ export default Vue.extend({
       iconMusic: L.icon({
         iconUrl: require("../assets/pin.svg"),
         iconSize: [30, 30],
-        iconAnchor: [15, 30],
+        iconAnchor: [15, 30]
       }),
       url: "http://{s}.tile.osm.org/{z}/{x}/{y}.png",
       attribution:
         '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      geosearchOptions: {
+        // Important part Here
+        provider: new OpenStreetMapProvider({
+          params: {
+            viewbox: "50.88,-26.49,63.54,-16.33",
+            bounded: "1"
+          }
+        }),
+        style: "bar",
+        animateZoom: true,
+        keepResult: true,
+        showPopup: false, // optional: true|false  - default false
+        marker: {
+          // optional: L.Marker    - default L.Icon.Default
+          icon: L.icon({
+            iconUrl: require("../assets/pinGreen.svg"),
+            iconSize: [30, 30],
+            iconAnchor: [15, 30]
+          }),
+          draggable: false
+        },
+        autoClose: true,
+        searchLabel: "Search location"
+      },
       markers: []
     };
   },
@@ -50,15 +78,31 @@ export default Vue.extend({
   },
   mounted() {
     //this.getGeolocation();
+    (this.$refs.map as any).mapObject.on(
+      "geosearch/showlocation",
+      (data: any) => console.log(data)
+    );
   },
   components: {
     LMap,
     LTileLayer,
-    LMarker
+    LMarker,
+    VGeosearch
   }
 });
 </script>
 
 <style>
-
+.leaflet-top{ 
+  top: 40px;
+}
+.leaflet-control-geosearch.bar { 
+  width: auto;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.leaflet-control-geosearch .results > * {
+  border-bottom: 1px solid #ccc;
+  white-space: normal;
+}
 </style>

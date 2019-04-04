@@ -12,6 +12,7 @@ import Quasar from "quasar";
 //MAP
 import { Icon }  from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet-geosearch/assets/css/leaflet.css'
 //END_MAP
 
 Vue.use(Quasar, {
