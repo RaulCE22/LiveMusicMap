@@ -4,11 +4,12 @@
       <v-geosearch :options="geosearchOptions"></v-geosearch>
       <l-tile-layer :url="url" :attribution="attribution"/>
       <l-marker
-        :key="1"
-        :lat-lng="[-21.340082, 55.466607]"
+        v-for="marker in markers"
+        :key="marker.id"
+        :lat-lng="marker.location"
         :visible="true"
         :icon="iconMusic"
-        @click="onMarkerClick(1)"
+        @click="onMarkerClick(marker.date)"
       ></l-marker>
     </l-map>
   </div>
@@ -40,10 +41,10 @@ export default Vue.extend({
       geosearchOptions: {
         // Important part Here
         provider: new OpenStreetMapProvider({
-          params: {
-            viewbox: "50.88,-26.49,63.54,-16.33",
-            bounded: "1"
-          }
+          // params: {
+          //   viewbox: "50.88,-26.49,63.54,-16.33",
+          //   bounded: "1"
+          // }
         }),
         style: "bar",
         animateZoom: true,
@@ -60,8 +61,7 @@ export default Vue.extend({
         },
         autoClose: true,
         searchLabel: "Search location"
-      },
-      markers: []
+      }
     };
   },
   methods: {
@@ -76,11 +76,20 @@ export default Vue.extend({
       console.log("Marker clicked: ", id);
     }
   },
+  computed: {
+    markers(): any {
+      return this.$store.state.markers;
+    }
+  },
   mounted() {
     //this.getGeolocation();
+
     (this.$refs.map as any).mapObject.on(
       "geosearch/showlocation",
-      (data: any) => console.log(data)
+      ({ location }: any) => {
+        this.$store.commit("addNewItemLocation", [location.y, location.x]);
+        this.$store.commit("enableAddButton");
+      }
     );
   },
   components: {
@@ -93,10 +102,14 @@ export default Vue.extend({
 </script>
 
 <style>
-.leaflet-top{ 
+.leaflet-top {
   top: 40px;
 }
-.leaflet-control-geosearch.bar { 
+.leaflet-control-zoom {
+  margin-top: 50px;
+  margin-left: 3px;
+}
+.leaflet-control-geosearch.bar {
   width: auto;
   margin-left: 10px;
   margin-right: 10px;

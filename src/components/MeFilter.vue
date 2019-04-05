@@ -22,7 +22,8 @@ export default Vue.extend({
         max: 5
       },
       lazy: {
-        min: 0, max: 5
+        min: 0,
+        max: 5
       }
     };
   },
