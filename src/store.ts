@@ -5,18 +5,17 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
+    myLocation: null,
     disabledAddButton: true,
     clickedAddButton: false,
     newItemLocation: [] as any,
-    fromModal: {
-      name: '',
-      date: new Date(),
-      description: new Date(),
-      location: [] as any
-    },
-    markers: [] as any
+    markers: [] as any,
   },
   mutations: {
+    updateMyLocation (state, location) {
+      state.myLocation = location
+      
+    },
     enableAddButton (state) {
       state.disabledAddButton = false;
     },

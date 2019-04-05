@@ -1,6 +1,6 @@
 <template>
   <div>
-    <l-map ref="map" :zoom="18" :min-zoom="3" :center="center" style="height: 100vh; z-index: 0">
+    <l-map ref="map" :zoom="3" :min-zoom="3" :center="center" style="height: 100vh; z-index: 0">
       <v-geosearch :options="geosearchOptions"></v-geosearch>
       <l-tile-layer :url="url" :attribution="attribution"/>
       <l-marker
@@ -11,6 +11,7 @@
         :icon="iconMusic"
         @click="onMarkerClick(marker.date)"
       ></l-marker>
+        <l-marker v-if="myLocation !== null" :key="0" :lat-lng="myLocation" :visible="true" :icon="iconMe"></l-marker>
     </l-map>
   </div>
 </template>
@@ -26,12 +27,23 @@ import { LMap, LTileLayer, LMarker } from "vue2-leaflet";
 
 export default Vue.extend({
   name: "me-map",
+  components: {
+    LMap,
+    LTileLayer,
+    LMarker,
+    VGeosearch
+  },
   data: () => {
     return {
       map: null,
-      center: [-21.340082, 55.466607],
+      center: [0, 0],
       iconMusic: L.icon({
         iconUrl: require("../assets/pin.svg"),
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+      }),
+      iconMe: L.icon({
+        iconUrl: require("../assets/user.svg"),
         iconSize: [30, 30],
         iconAnchor: [15, 30]
       }),
@@ -41,10 +53,10 @@ export default Vue.extend({
       geosearchOptions: {
         // Important part Here
         provider: new OpenStreetMapProvider({
-          // params: {
-          //   viewbox: "50.88,-26.49,63.54,-16.33",
-          //   bounded: "1"
-          // }
+          params: {
+            viewbox: "50.88,-26.49,63.54,-16.33",
+            bounded: "1"
+          }
         }),
         style: "bar",
         animateZoom: true,
@@ -64,26 +76,7 @@ export default Vue.extend({
       }
     };
   },
-  methods: {
-    getGeolocation() {
-      console.log("INIT");
-      navigator.geolocation.getCurrentPosition(
-        geo => (this.center = [geo.coords.latitude, geo.coords.longitude]),
-        err => console.error(err)
-      );
-    },
-    onMarkerClick(id: string) {
-      console.log("Marker clicked: ", id);
-    }
-  },
-  computed: {
-    markers(): any {
-      return this.$store.state.markers;
-    }
-  },
   mounted() {
-    //this.getGeolocation();
-
     (this.$refs.map as any).mapObject.on(
       "geosearch/showlocation",
       ({ location }: any) => {
@@ -92,11 +85,23 @@ export default Vue.extend({
       }
     );
   },
-  components: {
-    LMap,
-    LTileLayer,
-    LMarker,
-    VGeosearch
+  computed: {
+    markers(): any {
+      return this.$store.state.markers;
+    },
+    myLocation(): any {
+      return this.$store.state.myLocation;
+    }
+  },
+  watch: {
+    myLocation(location) {
+      (this.$refs.map as any).mapObject.setView(location, 16);
+    }
+  },
+  methods: {
+    onMarkerClick(id: string) {
+      console.log("Marker clicked: ", id);
+    }
   }
 });
 </script>
