@@ -1,8 +1,8 @@
 <template>
   <q-layout id="app">
     <me-map></me-map>
-    <!-- <me-filter></me-filter> -->
-    <me-buttons></me-buttons>
+    <me-filter></me-filter>
+    <!-- <me-buttons></me-buttons> -->
     <me-loading-position></me-loading-position>
     <me-modal></me-modal>
   </q-layout>

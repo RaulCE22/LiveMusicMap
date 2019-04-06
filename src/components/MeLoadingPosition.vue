@@ -1,5 +1,5 @@
 <template>
-  <q-page-sticky position="bottom-left" :offset="[18, 28]">
+  <q-page-sticky position="bottom-right" :offset="[18, 28]">
     <q-btn v-if="!loading" round color="primary" @click="startMyLocation()" icon="location_searching">
       <q-tooltip >Me location</q-tooltip>
     </q-btn>

@@ -9,9 +9,36 @@
         :lat-lng="marker.location"
         :visible="true"
         :icon="iconMusic"
-        @click="onMarkerClick(marker.date)"
+      >
+        <l-popup :options="{minWidth: 100}">
+          Name: {{marker.name}}
+          <br>
+          Date: {{marker.date | formatDate}}
+          <br>
+          Description: {{marker.description}}
+        </l-popup>
+      </l-marker>
+      <l-marker
+        v-if="myLocation !== null"
+        :key="0"
+        :lat-lng="myLocation"
+        :visible="true"
+        :icon="iconMe"
       ></l-marker>
-        <l-marker v-if="myLocation !== null" :key="0" :lat-lng="myLocation" :visible="true" :icon="iconMe"></l-marker>
+      <l-marker
+        v-if="newItemLocation !== null"
+        :key="1"
+        :lat-lng="newItemLocation"
+        :visible="true"
+        :icon="iconMusicNew"
+        @add="openPopup($event)"
+        @move="openPopup($event)"
+      >
+        <l-popup :options="{closeButton: false, keepInView: true, closeOnEscapeKey: false}">
+          <q-btn no-caps color="primary" label="Add concert" @click="onCreateNewItem()"/>
+        </l-popup>
+        <!-- <l-popup :content="'<div><button>Add concert</button></div>'" :options="{ keepInView: true, closeButton: false }"></l-popup> -->
+      </l-marker>
     </l-map>
   </div>
 </template>
@@ -23,13 +50,16 @@ import { Icon } from "leaflet";
 import { OpenStreetMapProvider } from "leaflet-geosearch";
 import VGeosearch from "vue2-leaflet-geosearch/Vue2LeafletGeosearch.vue";
 
-import { LMap, LTileLayer, LMarker } from "vue2-leaflet";
+import { LMap, LTileLayer, LPopup, LTooltip, LMarker } from "vue2-leaflet";
+import { date } from "quasar";
 
 export default Vue.extend({
   name: "me-map",
   components: {
     LMap,
     LTileLayer,
+    LPopup,
+    LTooltip,
     LMarker,
     VGeosearch
   },
@@ -38,6 +68,11 @@ export default Vue.extend({
       map: null,
       center: [0, 0],
       iconMusic: L.icon({
+        iconUrl: require("../assets/pinGreen.svg"),
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+      }),
+      iconMusicNew: L.icon({
         iconUrl: require("../assets/pin.svg"),
         iconSize: [30, 30],
         iconAnchor: [15, 30]
@@ -52,24 +87,26 @@ export default Vue.extend({
         '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       geosearchOptions: {
         // Important part Here
+        ref: "searchControl",
         provider: new OpenStreetMapProvider({
-          params: {
-            viewbox: "50.88,-26.49,63.54,-16.33",
-            bounded: "1"
-          }
+          // params: {
+          //   viewbox: "50.88,-26.49,63.54,-16.33",
+          //   bounded: "1"
+          // }
         }),
+        showMarker: false,
         style: "bar",
         animateZoom: true,
         keepResult: true,
         showPopup: false, // optional: true|false  - default false
         marker: {
           // optional: L.Marker    - default L.Icon.Default
-          icon: L.icon({
-            iconUrl: require("../assets/pinGreen.svg"),
-            iconSize: [30, 30],
-            iconAnchor: [15, 30]
-          }),
-          draggable: false
+          // icon: L.icon({
+          //   iconUrl: require("../assets/pinGreen.svg"),
+          //   iconSize: [30, 30],
+          //   iconAnchor: [15, 30]
+          // }),
+          // draggable: true
         },
         autoClose: true,
         searchLabel: "Search location"
@@ -77,13 +114,38 @@ export default Vue.extend({
     };
   },
   mounted() {
+    // setTimeout(() => {
+    //   (this.$refs.searchControl as any).getContainer().onclick = (e: any) => { e.stopPropagation(); };
+    // }, 1000);
     (this.$refs.map as any).mapObject.on(
       "geosearch/showlocation",
       ({ location }: any) => {
-        this.$store.commit("addNewItemLocation", [location.y, location.x]);
-        this.$store.commit("enableAddButton");
+        //this.$store.commit("addNewItemLocation", [location.y, location.x]);
+        //this.$store.commit("enableAddButton");
       }
     );
+    (this.$refs.map as any).mapObject.on("click", ({ latlng }: any) => {
+      this.$store.commit("addNewItemLocation", [
+        latlng.lat.toString(),
+        latlng.lng.toString()
+      ]);
+      console.log(latlng);
+      //this.$store.commit("enableAddButton");
+    });
+    (this.$refs.map as any).mapObject.on("moveend", (res: any) => {
+      console.log(res);
+      var bounds = res.target.getBounds();
+      console.log(
+        "Esquina NorOeste: ",
+        bounds.getNorthWest(),
+        "Esquina NorEste: ",
+        bounds.getNorthEast(),
+        "Esquina SurOeste: ",
+        bounds.getSouthWest(),
+        "Esquina SurEste: ",
+        bounds.getSouthEast()
+      );
+    });
   },
   computed: {
     markers(): any {
@@ -91,6 +153,9 @@ export default Vue.extend({
     },
     myLocation(): any {
       return this.$store.state.myLocation;
+    },
+    newItemLocation(): any {
+      return this.$store.state.newItemLocation;
     }
   },
   watch: {
@@ -101,6 +166,21 @@ export default Vue.extend({
   methods: {
     onMarkerClick(id: string) {
       console.log("Marker clicked: ", id);
+    },
+    onCreateNewItem() {
+      console.log("Create new item");
+      this.$store.commit("clickAddButton");
+    },
+    openPopup(event: any) {
+      setTimeout(() => {
+        event.target.openPopup();
+        console.log("Open");
+      }, 100);
+    }
+  },
+  filters: {
+    formatDate(value: Date) {
+      return date.formatDate(value, "DD-MM-YYYY (HH:mm)");
     }
   }
 });
@@ -108,19 +188,19 @@ export default Vue.extend({
 
 <style>
 .leaflet-top {
-  top: 40px;
+  top: 40px !important;
 }
 .leaflet-control-zoom {
-  margin-top: 50px;
-  margin-left: 3px;
+  margin-top: 20px !important;
+  margin-left: 10px !important;
 }
 .leaflet-control-geosearch.bar {
-  width: auto;
-  margin-left: 10px;
-  margin-right: 10px;
+  width: auto !important;
+  margin-left: 10px !important;
+  margin-right: 10px !important;
 }
 .leaflet-control-geosearch .results > * {
-  border-bottom: 1px solid #ccc;
-  white-space: normal;
+  border-bottom: 1px solid #ccc !important;
+  white-space: normal !important;
 }
 </style>

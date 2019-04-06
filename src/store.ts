@@ -8,7 +8,7 @@ export default new Vuex.Store({
     myLocation: null,
     disabledAddButton: true,
     clickedAddButton: false,
-    newItemLocation: [] as any,
+    newItemLocation: null,
     markers: [] as any,
   },
   mutations: {
@@ -30,11 +30,14 @@ export default new Vuex.Store({
     },
     addNewItemLocation(state,payload) {
       state.newItemLocation = payload
+      console.log(state.newItemLocation);
+      
     },
     createNewItem(state, payload: any) {
       console.log(state);
       console.log(payload);
       state.markers.push({...payload, location: state.newItemLocation, id: Math.random()})
+      state.newItemLocation = null;
     }
   },
   actions: {}
