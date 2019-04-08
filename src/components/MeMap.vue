@@ -32,10 +32,26 @@
         :visible="true"
         :icon="iconMusicNew"
         @add="openPopup($event)"
-        @move="openPopup($event)"
       >
-        <l-popup :options="{closeButton: false, keepInView: true, closeOnEscapeKey: false}">
-          <q-btn no-caps color="primary" label="Add concert" @click="onCreateNewItem()"/>
+        <l-popup
+          :options="{closeButton: false, closeOnEscapeKey: false, autoClose: false, closeOnClick: false}"
+        >
+          <q-btn
+            no-caps
+            class="full-width"
+            color="primary"
+            label="Add concert"
+            @click="onCreateNewItem()"
+          />
+          <q-btn
+            class="closeButtonPopup"
+            color="primary"
+            round
+            flat
+            size="xs"
+            icon="close"
+            @click="onCloseCreateNewItem()"
+          />
         </l-popup>
         <!-- <l-popup :content="'<div><button>Add concert</button></div>'" :options="{ keepInView: true, closeButton: false }"></l-popup> -->
       </l-marker>
@@ -47,7 +63,7 @@
 import Vue from "vue";
 import L from "leaflet";
 import { Icon } from "leaflet";
-import { OpenStreetMapProvider } from "leaflet-geosearch";
+import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
 import VGeosearch from "vue2-leaflet-geosearch/Vue2LeafletGeosearch.vue";
 
 import { LMap, LTileLayer, LPopup, LTooltip, LMarker } from "vue2-leaflet";
@@ -87,12 +103,11 @@ export default Vue.extend({
         '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       geosearchOptions: {
         // Important part Here
-        ref: "searchControl",
         provider: new OpenStreetMapProvider({
-          // params: {
-          //   viewbox: "50.88,-26.49,63.54,-16.33",
-          //   bounded: "1"
-          // }
+          params: {
+            viewbox: "50.88,-26.49,63.54,-16.33",
+            bounded: "1"
+          }
         }),
         showMarker: false,
         style: "bar",
@@ -110,13 +125,11 @@ export default Vue.extend({
         },
         autoClose: true,
         searchLabel: "Search location"
-      }
+      },
+      viewBox: ""
     };
   },
   mounted() {
-    // setTimeout(() => {
-    //   (this.$refs.searchControl as any).getContainer().onclick = (e: any) => { e.stopPropagation(); };
-    // }, 1000);
     (this.$refs.map as any).mapObject.on(
       "geosearch/showlocation",
       ({ location }: any) => {
@@ -124,7 +137,8 @@ export default Vue.extend({
         //this.$store.commit("enableAddButton");
       }
     );
-    (this.$refs.map as any).mapObject.on("click", ({ latlng }: any) => {
+    //contextmenu => press and hold mobile or button right on desktop
+    (this.$refs.map as any).mapObject.on("contextmenu", ({ latlng }: any) => {
       this.$store.commit("addNewItemLocation", [
         latlng.lat.toString(),
         latlng.lng.toString()
@@ -134,7 +148,29 @@ export default Vue.extend({
     });
     (this.$refs.map as any).mapObject.on("moveend", (res: any) => {
       console.log(res);
+
       var bounds = res.target.getBounds();
+      // this.viewBox =
+      //   bounds.getNorthWest().lat +
+      //   "," +
+      //   bounds.getNorthWest().lng +
+      //   "," +
+      //   bounds.getSouthEast().lat +
+      //   "," +
+      //   bounds.getSouthEast().lng;
+      console.log(this.viewBox);
+      
+      // res.sourceTarget.addControl(
+      //   new GeoSearchControl({
+      //     provider: new OpenStreetMapProvider({
+      //       params: {
+      //         viewbox: this.viewBox,
+      //         bounded: "1"
+      //       }
+      //     })
+      //   })
+      // );
+
       console.log(
         "Esquina NorOeste: ",
         bounds.getNorthWest(),
@@ -171,6 +207,10 @@ export default Vue.extend({
       console.log("Create new item");
       this.$store.commit("clickAddButton");
     },
+    onCloseCreateNewItem() {
+      console.log("Close create new item");
+      this.$store.commit("removeNewItemLocation");
+    },
     openPopup(event: any) {
       setTimeout(() => {
         event.target.openPopup();
@@ -187,6 +227,11 @@ export default Vue.extend({
 </script>
 
 <style>
+.closeButtonPopup {
+  position: absolute !important;
+  bottom: 43px;
+  right: -2px;
+}
 .leaflet-top {
   top: 40px !important;
 }

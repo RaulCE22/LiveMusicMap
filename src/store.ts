@@ -31,7 +31,9 @@ export default new Vuex.Store({
     addNewItemLocation(state,payload) {
       state.newItemLocation = payload
       console.log(state.newItemLocation);
-      
+    },
+    removeNewItemLocation(state,payload) {
+      state.newItemLocation = null
     },
     createNewItem(state, payload: any) {
       console.log(state);
