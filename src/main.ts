@@ -15,12 +15,24 @@ import 'leaflet/dist/leaflet.css'
 import 'leaflet-geosearch/assets/css/leaflet.css'
 //END_MAP
 
+//FIREBASE
+import firebase from 'firebase';
+
+var config = {
+  apiKey: "AIzaSyBzrkpnETop5EPIY-RduwYWTNRK-b-7RsE",
+  authDomain: "musiclivemap-cd4cf.firebaseapp.com",
+  databaseURL: "https://musiclivemap-cd4cf.firebaseio.com",
+  projectId: "musiclivemap-cd4cf",
+  storageBucket: "musiclivemap-cd4cf.appspot.com",
+  messagingSenderId: "40396984387"
+};
+firebase.initializeApp(config);
 Vue.use(Quasar, {
   config: {},
   i18n: lang
 });
+//END_FIREBASE
 
-//MAP
 delete Icon.Default.prototype._getIconUrl;
 
 Icon.Default.mergeOptions({

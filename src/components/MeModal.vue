@@ -51,9 +51,9 @@ export default Vue.extend({
     },
     create() {
       this.$store.commit("unClickAddButton");
-      this.$store.commit("createNewItem", { 
+      this.$store.dispatch("createItem", { 
         name: this.name,
-        date: this.date,
+        date: this.date.getTime(),
         description: this.description
       });
     }

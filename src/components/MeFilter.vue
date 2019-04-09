@@ -38,7 +38,7 @@ export default Vue.extend({
 .q-slider {
   position: fixed;
   bottom: 28px;
-  padding-left: 20px !important;
+  padding-left: 70px !important;
   padding-right: 70px !important;
 }
 </style>

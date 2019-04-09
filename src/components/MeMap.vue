@@ -64,6 +64,7 @@ import Vue from "vue";
 import L from "leaflet";
 import { Icon } from "leaflet";
 import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
+import axios from "axios";
 import VGeosearch from "vue2-leaflet-geosearch/Vue2LeafletGeosearch.vue";
 
 import { LMap, LTileLayer, LPopup, LTooltip, LMarker } from "vue2-leaflet";
@@ -104,10 +105,10 @@ export default Vue.extend({
       geosearchOptions: {
         // Important part Here
         provider: new OpenStreetMapProvider({
-          params: {
-            viewbox: "50.88,-26.49,63.54,-16.33",
-            bounded: "1"
-          }
+          // params: {
+          //   viewbox: "50.88,-26.49,63.54,-16.33",
+          //   bounded: "1"
+          // }
         }),
         showMarker: false,
         style: "bar",
@@ -139,11 +140,21 @@ export default Vue.extend({
     );
     //contextmenu => press and hold mobile or button right on desktop
     (this.$refs.map as any).mapObject.on("contextmenu", ({ latlng }: any) => {
-      this.$store.commit("addNewItemLocation", [
-        latlng.lat.toString(),
-        latlng.lng.toString()
-      ]);
       console.log(latlng);
+      axios
+        .get(
+          // `https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=-${latlng.lng}&zoom=2&addressdetails=1&format=json`
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${
+            latlng.lat
+          }&lon=${latlng.lng}&zoom=18&addressdetails=1`
+        )
+        .then((response: any) => {
+          this.$store.commit("addNewItemLocation", {
+            location: [response.data.lat, response.data.lon],
+            county: response.data.address.county
+          });
+          console.log(response.data.address.county);
+        });
       //this.$store.commit("enableAddButton");
     });
     (this.$refs.map as any).mapObject.on("moveend", (res: any) => {
@@ -159,7 +170,7 @@ export default Vue.extend({
       //   "," +
       //   bounds.getSouthEast().lng;
       console.log(this.viewBox);
-      
+
       // res.sourceTarget.addControl(
       //   new GeoSearchControl({
       //     provider: new OpenStreetMapProvider({
@@ -181,6 +192,8 @@ export default Vue.extend({
         "Esquina SurEste: ",
         bounds.getSouthEast()
       );
+
+      //this.getItems();
     });
   },
   computed: {
@@ -216,6 +229,9 @@ export default Vue.extend({
         event.target.openPopup();
         console.log("Open");
       }, 100);
+    },
+    getItems() {
+      this.$store.dispatch("getItems");
     }
   },
   filters: {
