@@ -1,6 +1,6 @@
 <template>
   <q-page-sticky position="bottom-left" :offset="[18, 28]">
-    <q-btn round color="primary" @click="onClickButton()" icon="search" :loading="loading"></q-btn>
+    <q-btn round color="deep-purple" @click="onClickButton()" icon="search" :loading="loading"></q-btn>
   </q-page-sticky>
 </template>
 <script lang="ts">

@@ -3,11 +3,11 @@
     <q-btn
       v-if="!loading"
       round
-      color="primary"
+      color="deep-purple"
       @click="startMyLocation()"
       icon="location_searching"
     ></q-btn>
-    <q-btn v-if="loading" round color="red" @click="cancelMyLocation()" icon>
+    <q-btn v-if="loading" round color="deep-purple-4" @click="cancelMyLocation()" icon>
       <q-spinner/>
     </q-btn>
   </q-page-sticky>
@@ -42,7 +42,9 @@ export default Vue.extend({
         },
         err => {
           Notify.create({
-            position: "top",
+             color: 'deep-purple',
+             icon: 'warning',
+position: "top",
             message: "No podemos obtener tu posicion GPS :("
           });
           this.cancelMyLocation();

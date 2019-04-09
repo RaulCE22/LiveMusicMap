@@ -3,21 +3,23 @@
     <l-map ref="map" :zoom="zoom" :min-zoom="3" :center="center" style="height: 100vh; z-index: 0">
       <v-geosearch :options="geosearchOptions"></v-geosearch>
       <l-tile-layer :url="url" :attribution="attribution"/>
-      <l-marker
-        v-for="marker in markers"
-        :key="marker.id"
-        :lat-lng="marker.location"
-        :visible="true"
-        :icon="iconMusic"
-      >
-        <l-popup :options="{minWidth: 100}">
-          Name: {{marker.name}}
-          <br>
-          Date: {{marker.date | formatDate}}
-          <br>
-          Description: {{marker.description}}
-        </l-popup>
-      </l-marker>
+      <v-marker-cluster :options="clusterMarkerOptions">
+        <l-marker
+          v-for="marker in markers"
+          :key="marker.id"
+          :lat-lng="marker.location"
+          :visible="true"
+          :icon="iconMusic"
+        >
+          <l-popup :options="{minWidth: 100}">
+            Name: {{marker.name}}
+            <br>
+            Date: {{marker.date | formatDate}}
+            <br>
+            Description: {{marker.description}}
+          </l-popup>
+        </l-marker>
+      </v-marker-cluster>
       <l-marker
         v-if="myLocation !== null"
         :key="0"
@@ -39,13 +41,13 @@
           <q-btn
             no-caps
             class="full-width"
-            color="primary"
+            color="deep-purple"
             label="Add concert"
             @click="onCreateNewItem()"
           />
           <q-btn
             class="closeButtonPopup"
-            color="primary"
+            color="deep-purple"
             round
             flat
             size="xs"
@@ -63,6 +65,7 @@
 import Vue from "vue";
 import L from "leaflet";
 import { Icon } from "leaflet";
+import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
 import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
 import axios from "axios";
 import VGeosearch from "vue2-leaflet-geosearch/Vue2LeafletGeosearch.vue";
@@ -78,18 +81,19 @@ export default Vue.extend({
     LPopup,
     LTooltip,
     LMarker,
+    "v-marker-cluster": Vue2LeafletMarkerCluster,
     VGeosearch
   },
   data: () => {
     return {
       map: null,
       iconMusic: L.icon({
-        iconUrl: require("../assets/pinGreen.svg"),
+        iconUrl: require("../assets/pinPurple.svg"),
         iconSize: [30, 30],
         iconAnchor: [15, 30]
       }),
       iconMusicNew: L.icon({
-        iconUrl: require("../assets/pin.svg"),
+        iconUrl: require("../assets/pinPurple.svg"),
         iconSize: [30, 30],
         iconAnchor: [15, 30]
       }),
@@ -101,6 +105,18 @@ export default Vue.extend({
       url: "http://{s}.tile.osm.org/{z}/{x}/{y}.png",
       attribution:
         '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      clusterMarkerOptions: {
+        iconCreateFunction: function(cluster: any) {
+          var markers = cluster.getAllChildMarkers();
+          var html = '<div class="clusterMarker">' + markers.length + "</div>";
+          return L.divIcon({
+            html: html,
+            className: "mycluster",
+            iconSize: L.point(32, 32)
+          });
+        },
+        zoomToBoundsOnClick: true
+      },
       geosearchOptions: {
         // Important part Here
         provider: new OpenStreetMapProvider(),
@@ -172,6 +188,15 @@ export default Vue.extend({
 </script>
 
 <style>
+.clusterMarker {
+width: 32px;
+    background: rgba(108, 0, 115, 0.75);
+    border-radius: 50%;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    color: white;
+}
 .closeButtonPopup {
   position: absolute !important;
   bottom: 43px;

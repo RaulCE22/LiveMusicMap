@@ -1,6 +1,7 @@
 <template>
   <q-range
     :value="lazy"
+    color="deep-purple"
     @change="val => onChangeValue(val)"
     :left-label-value="`${lazy.min} dia/s`"
     :right-label-value="`${lazy.max} dia/s`"

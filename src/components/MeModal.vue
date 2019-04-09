@@ -1,11 +1,17 @@
 <template>
   <q-modal v-model="$store.state.clickedAddButton">
+    <q-toolbar color="transparent" text-color="deep-purple">
+      <q-btn color="deep-purple" flat round dense icon="arrow_back" @click="cancel()"/>
+      <q-toolbar-title class="q-pr-xl text-center">Create new concert</q-toolbar-title>
+    </q-toolbar>
+
     <div class="q-ma-md row justify-center content-center">
       <!-- use 'row' class to define a container / parent -->
       <div class="col-10">
         <form action>
-          <q-input v-model="name" stack-label="Name"/>
+          <q-input color="deep-purple" v-model="name" stack-label="Name"/>
           <q-datetime
+            color="deep-purple"
             v-model="date"
             format="DD/MM/YYYY ( HH:mm )"
             type="datetime"
@@ -14,6 +20,7 @@
             :max="maxDay"
           />
           <q-input
+            color="deep-purple"
             v-model="description"
             type="textarea"
             stack-label="Description"
@@ -23,12 +30,9 @@
           <br>
         </form>
         <div class="row justify-around">
-          <div class="col-5">
-            <q-btn color="deep-orange" class="full-width" @click="cancel()" label="Cancel"/>
-          </div>
-          <div class="col-5">
+          <div class="col-10">
             <q-btn
-              color="secondary"
+              color="deep-purple"
               class="full-width"
               @click="create()"
               label="Create"
@@ -77,3 +81,12 @@ export default Vue.extend({
   }
 });
 </script>
+<style>
+.modal-content {
+  /* background: black !important; */
+}
+.q-datetime.text-black {
+  color: #673ab7 !important;
+}
+</style>
+

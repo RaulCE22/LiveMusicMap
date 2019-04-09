@@ -85,6 +85,8 @@ export default new Vuex.Store({
         })
         .catch(err => {
           Notify.create({
+            color: 'deep-purple',
+            icon: 'warning',
             position: "top",
             message: "No podemos obtener informacion del punto"
           });
@@ -110,6 +112,8 @@ export default new Vuex.Store({
                 if (snapshot.val() === null) {
                   state.getItemsLoading = false;
                   Notify.create({
+                    color: 'deep-purple',
+                    icon: 'warning',
                     position: "top",
                     message: "No hay ningun concierto cerca :("
                   });
@@ -121,7 +125,9 @@ export default new Vuex.Store({
           } else {
             state.getItemsLoading = false;
             Notify.create({
+              color: 'deep-purple',
               position: "top",
+              icon: 'warning',
               message: "No hay ningun concierto cerca :("
             });
             throw "county null";
@@ -139,15 +145,18 @@ export default new Vuex.Store({
           commit("unClickAddButton");
           commit("removeNewItemLocation");
           Notify.create({
+            color: 'deep-purple',
             position: "top",
-            type: 'positive',
+            icon: 'thumb_up',
             message: "Concierto creado :) Acualiza para verlo"
           });
         })
         .catch(err => {
           state.createItemLoading = false;
           Notify.create({
+            color: 'deep-purple',
             position: "top",
+            icon: 'warning',
             message: "No se ha podido crear el concierto :("
           });
         })
