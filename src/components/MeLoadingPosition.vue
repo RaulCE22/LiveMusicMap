@@ -6,11 +6,8 @@
       color="primary"
       @click="startMyLocation()"
       icon="location_searching"
-    >
-      <q-tooltip>Mi localización</q-tooltip>
-    </q-btn>
+    ></q-btn>
     <q-btn v-if="loading" round color="red" @click="cancelMyLocation()" icon>
-      <q-tooltip>Cancel searching</q-tooltip>
       <q-spinner/>
     </q-btn>
   </q-page-sticky>

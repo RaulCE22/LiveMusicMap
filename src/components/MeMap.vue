@@ -1,6 +1,6 @@
 <template>
   <div>
-    <l-map ref="map" :zoom="3" :min-zoom="3" :center="center" style="height: 100vh; z-index: 0">
+    <l-map ref="map" :zoom="zoom" :min-zoom="3" :center="center" style="height: 100vh; z-index: 0">
       <v-geosearch :options="geosearchOptions"></v-geosearch>
       <l-tile-layer :url="url" :attribution="attribution"/>
       <l-marker
@@ -83,7 +83,6 @@ export default Vue.extend({
   data: () => {
     return {
       map: null,
-      center: [0, 0],
       iconMusic: L.icon({
         iconUrl: require("../assets/pinGreen.svg"),
         iconSize: [30, 30],
@@ -104,99 +103,35 @@ export default Vue.extend({
         '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       geosearchOptions: {
         // Important part Here
-        provider: new OpenStreetMapProvider({
-          // params: {
-          //   viewbox: "50.88,-26.49,63.54,-16.33",
-          //   bounded: "1"
-          // }
-        }),
+        provider: new OpenStreetMapProvider(),
         showMarker: false,
         style: "bar",
         animateZoom: true,
         keepResult: true,
         showPopup: false, // optional: true|false  - default false
-        marker: {
-          // optional: L.Marker    - default L.Icon.Default
-          // icon: L.icon({
-          //   iconUrl: require("../assets/pinGreen.svg"),
-          //   iconSize: [30, 30],
-          //   iconAnchor: [15, 30]
-          // }),
-          // draggable: true
-        },
         autoClose: true,
         searchLabel: "Search location"
-      },
-      viewBox: ""
+      }
     };
   },
   mounted() {
-    (this.$refs.map as any).mapObject.on(
-      "geosearch/showlocation",
-      ({ location }: any) => {
-        //this.$store.commit("addNewItemLocation", [location.y, location.x]);
-        //this.$store.commit("enableAddButton");
-      }
-    );
-    //contextmenu => press and hold mobile or button right on desktop
+    //CONTEXTMENU => press and hold mobile or button right on desktop
     (this.$refs.map as any).mapObject.on("contextmenu", ({ latlng }: any) => {
-      console.log(latlng);
-      axios
-        .get(
-          // `https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=-${latlng.lng}&zoom=2&addressdetails=1&format=json`
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${
-            latlng.lat
-          }&lon=${latlng.lng}&zoom=18&addressdetails=1`
-        )
-        .then((response: any) => {
-          this.$store.commit("addNewItemLocation", {
-            location: [response.data.lat, response.data.lon],
-            county: response.data.address.county
-          });
-          console.log(response.data.address.county);
-        });
-      //this.$store.commit("enableAddButton");
+      this.$store.dispatch("getPointInformation", latlng);
     });
+    // MOVEEND
     (this.$refs.map as any).mapObject.on("moveend", (res: any) => {
-      console.log(res);
-
-      var bounds = res.target.getBounds();
-      // this.viewBox =
-      //   bounds.getNorthWest().lat +
-      //   "," +
-      //   bounds.getNorthWest().lng +
-      //   "," +
-      //   bounds.getSouthEast().lat +
-      //   "," +
-      //   bounds.getSouthEast().lng;
-      console.log(this.viewBox);
-
-      // res.sourceTarget.addControl(
-      //   new GeoSearchControl({
-      //     provider: new OpenStreetMapProvider({
-      //       params: {
-      //         viewbox: this.viewBox,
-      //         bounded: "1"
-      //       }
-      //     })
-      //   })
-      // );
-
-      console.log(
-        "Esquina NorOeste: ",
-        bounds.getNorthWest(),
-        "Esquina NorEste: ",
-        bounds.getNorthEast(),
-        "Esquina SurOeste: ",
-        bounds.getSouthWest(),
-        "Esquina SurEste: ",
-        bounds.getSouthEast()
-      );
-
-      //this.getItems();
+      this.$store.commit("setCenterMap", res.target.getCenter());
+      this.$store.commit("setZoomMap", res.target.getZoom());
     });
   },
   computed: {
+    center(): any {
+      return this.$store.state.center;
+    },
+    zoom(): any {
+      return this.$store.state.zoom;
+    },
     markers(): any {
       return this.$store.state.markers;
     },
@@ -213,25 +148,19 @@ export default Vue.extend({
     }
   },
   methods: {
-    onMarkerClick(id: string) {
-      console.log("Marker clicked: ", id);
-    },
     onCreateNewItem() {
-      console.log("Create new item");
       this.$store.commit("clickAddButton");
     },
     onCloseCreateNewItem() {
-      console.log("Close create new item");
       this.$store.commit("removeNewItemLocation");
+    },
+    getItems() {
+      this.$store.dispatch("getItems");
     },
     openPopup(event: any) {
       setTimeout(() => {
         event.target.openPopup();
-        console.log("Open");
       }, 100);
-    },
-    getItems() {
-      this.$store.dispatch("getItems");
     }
   },
   filters: {
