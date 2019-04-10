@@ -5,7 +5,7 @@
     @change="val => onChangeValue(val)"
     :left-label-value="`${lazy.min} dia/s`"
     :right-label-value="`${lazy.max} dia/s`"
-    :min="0"
+    :min="-1"
     :max="20"
     :step="1"
     label-always
@@ -18,21 +18,19 @@ export default Vue.extend({
   name: "me-filter",
   data() {
     return {
-      rangeValues: {
-        min: 0,
-        max: 5
-      },
-      lazy: {
-        min: 0,
-        max: 5
-      }
     };
+  },
+  computed: {
+    lazy(this: any): any {
+      return this.$store.state.range;
+    }
   },
   methods: {
     onChangeValue(val: any) {
-      this.lazy = val;
+      console.log(val);
+      this.$store.commit('setRange',val);
     }
-  }
+  },
 });
 </script>
 <style lang="scss" scoped>

@@ -4,7 +4,7 @@ import store from "./store";
 import "./registerServiceWorker";
 
 import "./styles/quasar.styl";
-import lang from "quasar-framework/i18n/es";
+import lang from "quasar-framework/i18n/en-uk";
 import "quasar-extras/animate";
 import "quasar-extras/material-icons";
 import Quasar from "quasar";

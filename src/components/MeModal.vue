@@ -1,5 +1,5 @@
 <template>
-  <q-modal v-model="$store.state.clickedAddButton">
+  <q-modal v-model="clickedAddButton">
     <q-toolbar color="transparent" text-color="deep-purple">
       <q-btn color="deep-purple" flat round dense icon="arrow_back" @click="cancel()"/>
       <q-toolbar-title class="q-pr-xl text-center">Create new concert</q-toolbar-title>
@@ -9,7 +9,10 @@
       <!-- use 'row' class to define a container / parent -->
       <div class="col-10">
         <form action>
-          <q-input color="deep-purple" v-model="name" stack-label="Name"/>
+          <q-input color="deep-purple" v-model="name" stack-label="Title *"/>
+          <q-input color="deep-purple" v-model="place" stack-label="Place *"/>
+          <q-input color="deep-purple" v-model="style" stack-label="Music style *"/>
+          <q-input color="deep-purple" v-model="link" stack-label="Url"/>
           <q-datetime
             color="deep-purple"
             v-model="date"
@@ -52,6 +55,9 @@ export default Vue.extend({
   data() {
     return {
       name: "",
+      place: "",
+      style: "",
+      link: "",
       today: new Date(),
       date: new Date(),
       maxDay: new Date(),
@@ -65,6 +71,19 @@ export default Vue.extend({
   computed: {
     loading(): any {
       return this.$store.state.createItemLoading;
+    },
+    clickedAddButton(): any {
+      return this.$store.state.clickedAddButton;
+    }
+  },
+  watch: {
+    clickedAddButton(state): any {
+      this.name = "",
+      this.date = new Date(),
+      this.description = "",
+      this.link = "",
+      this.place ="", 
+      this.style= ""
     }
   },
   methods: {
@@ -74,6 +93,9 @@ export default Vue.extend({
     create() {
       this.$store.dispatch("createItem", {
         name: this.name,
+        style: this.style,
+        link: this.link,
+        place: this.place,
         date: this.date.getTime(),
         description: this.description
       });
@@ -82,9 +104,7 @@ export default Vue.extend({
 });
 </script>
 <style>
-.modal-content {
-  /* background: black !important; */
-}
+
 .q-datetime.text-black {
   color: #673ab7 !important;
 }

@@ -1,6 +1,27 @@
 <template>
   <q-page-sticky position="bottom-left" :offset="[18, 28]">
-    <q-btn round color="deep-purple" @click="onClickButton()" icon="search" :loading="loading"></q-btn>
+    <q-fab
+      class="my-search"
+      @show="showTooltip()"
+      @hide="hideTooltip()"
+      direction="up"
+      icon="search"
+      active-icon="youtube_searched_for"
+      color="deep-purple"
+    >
+      <q-fab-action color="deep-purple" @click="onClickButton({min: 0, max: 0})" icon="today">
+        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Hoy</q-tooltip>
+      </q-fab-action>
+      <q-fab-action color="deep-purple" @click="onClickButton({min: 1, max: 1})" icon="event">
+        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Mañana</q-tooltip>
+      </q-fab-action>
+      <q-fab-action color="deep-purple" @click="onClickButton({min: 0, max: 7})" icon="date_range">
+        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Semana</q-tooltip>
+      </q-fab-action>
+      <q-fab-action color="deep-purple" @click="onClickButton({min: 0, max: 3})" icon="calendar_today">
+        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Mes</q-tooltip>
+      </q-fab-action>
+    </q-fab>
   </q-page-sticky>
 </template>
 <script lang="ts">
@@ -8,7 +29,7 @@ import Vue from "vue";
 export default Vue.extend({
   name: "me-search",
   data() {
-    return {};
+    return { show: false };
   },
   computed: {
     loading(): boolean {
@@ -16,13 +37,38 @@ export default Vue.extend({
     }
   },
   methods: {
-    onClickButton() {
+    onClickButton(range: number) {
+      this.$store.commit("setRange", range);
       this.$store.dispatch("getItems");
+      this.show = false;
+    },
+    showTooltip() {
+      setTimeout(() => {
+        this.show = true;
+      }, 500);
+    },
+    hideTooltip() {
+      setTimeout(() => {
+        this.show = false;
+      }, 10);
     }
+  },
+  watch: {
+    show(value) {}
   }
 });
 </script>
 
-<style lang="scss" scoped>
+<style>
+.my-search .q-btn-fab {
+  width: 42px;
+  height: 42px;
+}
+.my-search .absolute-full {
+  top: inherit;
+  right: inherit;
+  bottom: inherit;
+  left: inherit;
+}
 </style>
 

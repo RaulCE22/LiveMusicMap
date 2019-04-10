@@ -10,14 +10,8 @@
           :lat-lng="marker.location"
           :visible="true"
           :icon="iconMusic"
+          @click="clickMarker(marker)"
         >
-          <l-popup :options="{minWidth: 100}">
-            Name: {{marker.name}}
-            <br>
-            Date: {{marker.date | formatDate}}
-            <br>
-            Description: {{marker.description}}
-          </l-popup>
         </l-marker>
       </v-marker-cluster>
       <l-marker
@@ -63,8 +57,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import L from "leaflet";
-import { Icon } from "leaflet";
+import L from 'leaflet';
 import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
 import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
 import axios from "axios";
@@ -177,6 +170,12 @@ export default Vue.extend({
       setTimeout(() => {
         event.target.openPopup();
       }, 100);
+    },
+    clickMarker(marker: any) {
+      this.$store.commit('setConcertInfo', marker);
+      (this.$refs.map as any).mapObject.panTo(marker.location);
+      console.log(marker);
+      
     }
   },
   filters: {
