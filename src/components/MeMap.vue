@@ -11,8 +11,7 @@
           :visible="true"
           :icon="iconMusic"
           @click="clickMarker(marker)"
-        >
-        </l-marker>
+        ></l-marker>
       </v-marker-cluster>
       <l-marker
         v-if="myLocation !== null"
@@ -30,7 +29,7 @@
         @add="openPopup($event)"
       >
         <l-popup
-          :options="{closeButton: false, closeOnEscapeKey: false, autoClose: false, closeOnClick: false}"
+          :options="{offset: [-5,-15], closeButton: false, closeOnEscapeKey: false, autoClose: false, closeOnClick: false}"
         >
           <q-btn
             no-caps
@@ -57,7 +56,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import L from 'leaflet';
+import L from "leaflet";
 import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
 import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
 import axios from "axios";
@@ -91,9 +90,10 @@ export default Vue.extend({
         iconAnchor: [15, 30]
       }),
       iconMe: L.icon({
-        iconUrl: require("../assets/user.svg"),
+        iconUrl: require("../assets/me.svg"),
         iconSize: [30, 30],
-        iconAnchor: [15, 30]
+        iconAnchor: [15, 30],
+        className: "blinking"
       }),
       url: "http://{s}.tile.osm.org/{z}/{x}/{y}.png",
       attribution:
@@ -172,10 +172,9 @@ export default Vue.extend({
       }, 100);
     },
     clickMarker(marker: any) {
-      this.$store.commit('setConcertInfo', marker);
+      this.$store.commit("setConcertInfo", marker);
       (this.$refs.map as any).mapObject.panTo(marker.location);
       console.log(marker);
-      
     }
   },
   filters: {
@@ -188,13 +187,15 @@ export default Vue.extend({
 
 <style>
 .clusterMarker {
-width: 32px;
-    background: rgba(108, 0, 115, 0.75);
-    border-radius: 50%;
-    height: 32px;
-    line-height: 32px;
-    text-align: center;
-    color: white;
+  background: rgba(108, 0, 115, 0.75);
+  border: 4px solid rgba(108, 0, 115, 0.35);
+  border-radius: 50%;
+  height: 32px;
+  line-height: 25px;
+  text-align: center;
+  color: white;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
 }
 .closeButtonPopup {
   position: absolute !important;
@@ -216,5 +217,13 @@ width: 32px;
 .leaflet-control-geosearch .results > * {
   border-bottom: 1px solid #ccc !important;
   white-space: normal !important;
+}
+@keyframes fade {
+  from {
+    opacity: 0.5;
+  }
+}
+.blinking {
+  animation: fade 1s infinite alternate;
 }
 </style>

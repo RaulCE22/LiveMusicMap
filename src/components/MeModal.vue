@@ -9,10 +9,21 @@
       <!-- use 'row' class to define a container / parent -->
       <div class="col-10">
         <form action>
-          <q-input color="deep-purple" v-model="name" stack-label="Title *"/>
-          <q-input color="deep-purple" v-model="place" stack-label="Place *"/>
-          <q-input color="deep-purple" v-model="style" stack-label="Music style *"/>
-          <q-input color="deep-purple" v-model="link" stack-label="Url"/>
+          <div class="row justify-between">
+            <q-input
+              class="col-10"
+              maxlength="60"
+              color="deep-purple"
+              :value="myEmail"
+              stack-label="User email *"
+              disable
+            />
+            <q-btn class="q-mt-md col-1" color="deep-purple" icon="person" @click="goToLogin()"/>
+          </div>
+          <q-input maxlength="60" color="deep-purple" v-model="name" stack-label="Title *"/>
+          <q-input maxlength="60" color="deep-purple" v-model="place" stack-label="Place *"/>
+          <q-input maxlength="60" color="deep-purple" v-model="style" stack-label="Music style *"/>
+          <q-input maxlength="60" color="deep-purple" v-model="link" stack-label="Url"/>
           <q-datetime
             color="deep-purple"
             v-model="date"
@@ -23,22 +34,34 @@
             :max="maxDay"
           />
           <q-input
+            maxlength="300"
             color="deep-purple"
             v-model="description"
             type="textarea"
             stack-label="Description"
             :max-height="100"
-            rows="7"
+            rows="3"
           />
           <br>
         </form>
         <div class="row justify-around">
           <div class="col-10">
             <q-btn
+              v-if="myEmail"
               color="deep-purple"
               class="full-width"
               @click="create()"
               label="Create"
+              no-caps
+              :loading="loading"
+            />
+            <q-btn
+              v-if="!myEmail"
+              disable
+              color="deep-purple"
+              class="full-width"
+              label="Add user email"
+              no-caps
               :loading="loading"
             />
           </div>
@@ -50,6 +73,8 @@
 
 <script lang="ts">
 import Vue from "vue";
+import { Dialog } from "quasar";
+
 export default Vue.extend({
   name: "me-modal",
   data() {
@@ -69,6 +94,9 @@ export default Vue.extend({
     this.maxDay.setDate(this.today.getDate() + 90);
   },
   computed: {
+    myEmail(): any {
+      return this.$store.state.myEmail;
+    },
     loading(): any {
       return this.$store.state.createItemLoading;
     },
@@ -78,12 +106,13 @@ export default Vue.extend({
   },
   watch: {
     clickedAddButton(state): any {
-      this.name = "",
-      this.date = new Date(),
-      this.description = "",
-      this.link = "",
-      this.place ="", 
-      this.style= ""
+      console.log(state);
+      (this.name = ""),
+        (this.date = new Date()),
+        (this.description = ""),
+        (this.link = ""),
+        (this.place = ""),
+        (this.style = "");
     }
   },
   methods: {
@@ -99,12 +128,14 @@ export default Vue.extend({
         date: this.date.getTime(),
         description: this.description
       });
+    },
+    goToLogin() {
+      this.$store.commit("clickLoginButton");
     }
   }
 });
 </script>
 <style>
-
 .q-datetime.text-black {
   color: #673ab7 !important;
 }

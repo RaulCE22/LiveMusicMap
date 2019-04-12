@@ -8,6 +8,10 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
+    //user
+    clickedLoginButton: false,
+    logged: false,
+    myEmail: '',
     myLocation: null,
     //Use for search
     center: JSON.parse(localStorage.getItem('Center') || '[0,0]'),
@@ -27,6 +31,21 @@ export default new Vuex.Store({
     createItemLoading: false
   },
   mutations: {
+    clickLoginButton(state) {
+      state.clickedLoginButton = true;
+    },
+    unClickLoginButton(state) {
+      state.clickedLoginButton = false;
+    },
+    setUser(state, userEmail) {
+      state.myEmail = userEmail;
+      state.logged = true;
+      console.log('setUser', state);
+    },
+    removeUser(state) {
+      state.myEmail = '';
+      state.logged = false;
+    },
     updateMyLocation(state, location) {
       state.myLocation = location
     },
@@ -69,6 +88,7 @@ export default new Vuex.Store({
       state.markers =
         Object.keys(payload).map((item: any) => ({
           id: item,
+          userEmail: payload[item].userEmail,
           name: payload[item].name,
           description: payload[item].description,
           date: payload[item].date,
@@ -86,6 +106,103 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    verifyUser({state, commit}){
+      firebase.auth().onAuthStateChanged(function(user: any) {
+        if (user) {
+          commit('setUser', user.email);
+        } else {
+          commit('removeUser');
+        }
+      });
+    },
+    login({state, commit}, {email, pass, newUser}){
+      if (newUser) {
+        Loading.show({
+          message: 'Creating new user',
+          spinnerColor: 'white',
+        })
+        return firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, pass)
+        .then((res: any) => {
+          state.clickedLoginButton = false;
+          state.logged = true;
+          state.myEmail = email;
+          Notify.create({
+            color: 'deep-purple',
+            icon: 'thumb_up',
+            position: "top",
+            message: "Logged"
+          });
+          Loading.hide();
+        })
+        .catch( (err: any) => {
+          Loading.hide();
+          Notify.create({
+            color: 'deep-purple',
+            icon: 'thumb_up',
+            position: "top",
+            message: "Incorrect user"
+          });
+        });
+      }else {
+        Loading.show({
+          message: 'Logining',
+          spinnerColor: 'white',
+        })
+        return firebase
+        .auth()
+        .signInWithEmailAndPassword(email, pass)
+        .then((res: any) => {
+          state.clickedLoginButton = false;
+          state.logged = true;
+          state.myEmail = email;
+          Notify.create({
+            color: 'deep-purple',
+            icon: 'thumb_up',
+            position: "top",
+            message: "Logged"
+          });
+          Loading.hide();
+        })
+        .catch( (err: any) => {
+          Notify.create({
+            color: 'deep-purple',
+            icon: 'thumb_up',
+            position: "top",
+            message: "Incorrect user"
+          });
+          Loading.hide();
+        });
+      }
+    },
+    logout({state}) {
+      Loading.show({
+        message: 'Logout',
+        spinnerColor: 'white',
+      })
+      firebase.auth().signOut()
+      .then(function() {
+        Loading.hide();
+        state.myEmail = '',
+        state.logged = false,
+        Notify.create({
+          color: 'deep-purple',
+          icon: 'thumb_up',
+          position: "top",
+          message: "Sign out"
+        });
+      })
+      .catch(function(error) {
+        Loading.hide();
+        Notify.create({
+          color: 'deep-purple',
+          icon: 'warning',
+          position: "top",
+          message: "Error. Try again"
+        });
+      });
+    },
     getPointInformation({ state, commit }, latlng) {
       return axios
         .get(
@@ -104,9 +221,41 @@ export default new Vuex.Store({
             color: 'deep-purple',
             icon: 'warning',
             position: "top",
-            message: "No podemos obtener informacion del punto"
+            message: "We can´t get point information"
           });
         })
+    },
+    getMyItems({state, commit}) {
+      Loading.show({
+        message: 'Getting my concerts',
+        spinnerColor: 'white',
+      });
+      return firebase
+              .database()
+              .ref('concerts/')
+              .orderByChild('userEmail')
+              .equalTo(state.myEmail)
+              .once('value', snapshot => {
+                if (snapshot.val() === null) {
+                  Loading.hide();
+                  Notify.create({
+                    color: 'deep-purple',
+                    icon: 'warning',
+                    position: "top",
+                    message: "You don´t have any concerts created"
+                  });
+                  throw "no concert";
+                } else {
+                  Loading.hide();
+                  Notify.create({
+                    color: 'deep-purple',
+                    position: "top",
+                    icon: 'thumb_up',
+                    message: "Finded " + Object.keys(snapshot.val()).length + " concerts!"
+                  });
+                  commit('setItems', snapshot.val());
+                }
+              });
     },
     getItems({ state, commit }) {
       Loading.show({
@@ -120,10 +269,10 @@ export default new Vuex.Store({
           state.center[0]
           }&lon=${state.center[1]}&zoom=18&addressdetails=1`
         )
-        .then((response: any) => response.data.address.county)
+        .then((response: any) => response.data.address ? response.data.address.county : null)
         .then((county: string) => {
           if (county) {
-            
+
             var searchMin = new Date();
             searchMin.setHours(0, 0, 0, 0);
             searchMin.setDate(searchMin.getDate() + state.range.min);
@@ -131,7 +280,7 @@ export default new Vuex.Store({
             searchMax.setHours(23, 59, 59, 999);
             searchMax.setDate(searchMax.getDate() + state.range.max);
             console.log(searchMin, searchMax);
-            
+
             return firebase
               .database()
               .ref('concerts/')
@@ -145,47 +294,54 @@ export default new Vuex.Store({
                     color: 'deep-purple',
                     icon: 'warning',
                     position: "top",
-                    message: "No hay ningun concierto cerca :("
+                    message: "No upcomming concerts near your location :("
                   });
                   throw "no concert with county";
                 } else {
                   Loading.hide();
+                  Notify.create({
+                    color: 'deep-purple',
+                    position: "top",
+                    icon: 'thumb_up',
+                    message: "Finded " + Object.keys(snapshot.val()).length + " concerts near your location!"
+                  });
                   commit('setItems', snapshot.val());
                 }
               });
           } else {
-             Loading.hide();
+            Loading.hide();
             Notify.create({
               color: 'deep-purple',
               position: "top",
               icon: 'warning',
-              message: "No hay ningun concierto cerca :("
+              message: "No upcomming concerts near your location"
             });
             throw "county null";
           }
         })
     },
     createItem({ state, commit }, payload) {
-      if (payload.name === '' || payload.description === '' || payload.place === '' || payload.style === '') {
+      if (payload.name === '' || payload.place === '' || payload.style === '') {
         Notify.create({
           color: 'deep-purple',
           position: "top",
           icon: 'warning',
-          message: "Algunos campos están vacios"
+          message: "Sorry, some fields are empty"
         });
       } else if (payload.link !== '' && /^(http|https):\/\//.exec(payload.link) === null) {
         Notify.create({
           color: 'deep-purple',
           position: "top",
           icon: 'warning',
-          message: "Url no valida"
+          message: "Url invalid. (add http or https)"
         });
       } else {
         state.createItemLoading = true;
+        var newItem = { ...payload, userEmail: state.myEmail, location: state.newItemLocation, county: state.newItemCounty, search: state.newItemCounty + '_' + payload.date };
         return firebase
           .database()
           .ref('concerts')
-          .push({ ...payload, location: state.newItemLocation, county: state.newItemCounty, search: state.newItemCounty + '_' + payload.date })
+          .push(newItem)
           .then(res => {
             state.createItemLoading = false;
             commit("unClickAddButton");
@@ -194,8 +350,13 @@ export default new Vuex.Store({
               color: 'deep-purple',
               position: "top",
               icon: 'thumb_up',
-              message: "Concierto creado :) Acualiza para verlo"
+              message: "Concerts created :)"
             });
+            state.markers.push(newItem);
+            axios
+              .post('https://api.telegram.org/bot668229806:AAGy_ph0kPQyX2HUtRGduTSxoERzG5vgLws/sendMessage', { chat_id: 802823958, text: JSON.stringify(newItem) })
+              .then((res: any) => console.log(res))
+              .catch((err: any) => console.error(err))
           })
           .catch(err => {
             state.createItemLoading = false;
@@ -203,10 +364,44 @@ export default new Vuex.Store({
               color: 'deep-purple',
               position: "top",
               icon: 'warning',
-              message: "No se ha podido crear el concierto :("
+              message: "We cannot create your concert. Try again :("
             });
           })
       }
+    },
+    removeItem({state,commit} , id) {
+      Loading.show({
+        message: 'Remove concert',
+        spinnerColor: 'white',
+      })
+      return firebase
+          .database()
+          .ref('concerts')
+          .child(id)
+          .remove()
+          .then((res: any) => {
+            Notify.create({
+              color: 'deep-purple',
+              position: "top",
+              icon: 'thumb_up',
+              message: "Concert removed :)"
+            });
+            commit('removeConcertInfo');
+            var indexToRemove = state.markers.findIndex((item: any) => item.id === id);
+            if (indexToRemove !== -1) {
+              state.markers = state.markers.splice(indexToRemove, indexToRemove);
+            }
+            Loading.hide();
+          })
+          .catch((err: any) => {
+            Notify.create({
+              color: 'deep-purple',
+              position: "top",
+              icon: 'warning',
+              message: "We can´t remove this concert :("
+            });
+            Loading.hide();
+          })
     }
   }
 });

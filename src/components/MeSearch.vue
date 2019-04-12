@@ -10,16 +10,33 @@
       color="deep-purple"
     >
       <q-fab-action color="deep-purple" @click="onClickButton({min: 0, max: 0})" icon="today">
-        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Hoy</q-tooltip>
+        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Today</q-tooltip>
       </q-fab-action>
       <q-fab-action color="deep-purple" @click="onClickButton({min: 1, max: 1})" icon="event">
-        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Mañana</q-tooltip>
+        <q-tooltip
+          anchor="center left"
+          self="center right"
+          :offset="[20, 0]"
+          v-model="show"
+        >Tomorrow</q-tooltip>
       </q-fab-action>
       <q-fab-action color="deep-purple" @click="onClickButton({min: 0, max: 7})" icon="date_range">
-        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Semana</q-tooltip>
+        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Week</q-tooltip>
       </q-fab-action>
-      <q-fab-action color="deep-purple" @click="onClickButton({min: 0, max: 3})" icon="calendar_today">
-        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Mes</q-tooltip>
+      <q-fab-action
+        color="deep-purple"
+        @click="onClickButton({min: 0, max: 31})"
+        icon="calendar_today"
+      >
+        <q-tooltip anchor="center left" self="center right" :offset="[20, 0]" v-model="show">Month</q-tooltip>
+      </q-fab-action>
+      <q-fab-action color="deep-purple" @click="onClickMyConcerts()" icon="person">
+        <q-tooltip
+          anchor="center left"
+          self="center right"
+          :offset="[20, 0]"
+          v-model="show"
+        >MyConcerts</q-tooltip>
       </q-fab-action>
     </q-fab>
   </q-page-sticky>
@@ -34,6 +51,9 @@ export default Vue.extend({
   computed: {
     loading(): boolean {
       return this.$store.state.getItemsLoading;
+    },
+    isLogged(): boolean {
+      return this.$store.state.logged;
     }
   },
   methods: {
@@ -41,6 +61,13 @@ export default Vue.extend({
       this.$store.commit("setRange", range);
       this.$store.dispatch("getItems");
       this.show = false;
+    },
+    onClickMyConcerts() {
+      if (this.$store.state.logged) {
+        this.$store.dispatch("getMyItems");
+      } else {
+        this.$store.commit("clickLoginButton");
+      }
     },
     showTooltip() {
       setTimeout(() => {
